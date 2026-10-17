@@ -61,15 +61,7 @@
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
-        if (type === 'goal') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-          osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.15);
-          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.6);
-        } else if (type === 'cashout') {
+        if (type === 'cashout') {
           osc.type = 'sine';
           osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
           osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
@@ -107,11 +99,6 @@
           <path fill="#000" d="M10 5a1 1 0 011 1v1h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v1a1 1 0 11-2 0v-1H8a1 1 0 110-2h1v-2H8a1 1 0 010-2h1V6a1 1 0 011-1z" />
         </svg>
       ),
-      User: () => (
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
       Copy: () => (
         <svg className="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -127,29 +114,6 @@
       { id: 'bundesliga', name: '🇩🇪 Almanya Bundesliga', code: 'ger.1' },
       { id: 'ligue1', name: '🇫🇷 Fransa Ligue 1', code: 'fra.1' },
       { id: 'champions', name: '🏆 UEFA Şampiyonlar Ligi', code: 'uefa.champions' }
-    ];
-
-    const SAMPLE_FALLBACK_MATCHES = [
-      {
-        id: 'fb_1', code: '101', league: 'superlig', leagueName: '🇹🇷 Trendyol Süper Lig',
-        time: '20:00', isLive: true, minute: "62'", home: 'Galatasaray', away: 'Fenerbahçe',
-        scoreHome: 1, scoreAway: 1, odds: { ms1: 2.10, msX: 3.20, ms2: 2.80, alt25: 1.85, ust25: 1.75, kgVar: 1.60, kgYok: 2.05 }
-      },
-      {
-        id: 'fb_2', code: '102', league: 'superlig', leagueName: '🇹🇷 Trendyol Süper Lig',
-        time: '21:45', isLive: false, minute: null, home: 'Beşiktaş', away: 'Trabzonspor',
-        scoreHome: null, scoreAway: null, odds: { ms1: 1.90, msX: 3.40, ms2: 3.20, alt25: 1.95, ust25: 1.65, kgVar: 1.55, kgYok: 2.15 }
-      },
-      {
-        id: 'fb_3', code: '103', league: 'premier', leagueName: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 İngiltere Premier Lig',
-        time: '18:30', isLive: true, minute: "38'", home: 'Arsenal', away: 'Manchester City',
-        scoreHome: 2, scoreAway: 1, odds: { ms1: 2.40, msX: 3.10, ms2: 2.50, alt25: 2.10, ust25: 1.55, kgVar: 1.50, kgYok: 2.30 }
-      },
-      {
-        id: 'fb_4', code: '104', league: 'laliga', leagueName: '🇪🇸 İspanya La Liga',
-        time: '22:00', isLive: false, minute: null, home: 'Real Madrid', away: 'Barcelona',
-        scoreHome: null, scoreAway: null, odds: { ms1: 2.05, msX: 3.50, ms2: 2.90, alt25: 2.20, ust25: 1.50, kgVar: 1.45, kgYok: 2.40 }
-      }
     ];
 
     function App() {
@@ -200,9 +164,9 @@
         }));
       };
 
-      // VERİ DURUMLARI
-      const [fixtures, setFixtures] = useState(SAMPLE_FALLBACK_MATCHES);
-      const [isLoading, setIsLoading] = useState(false);
+      // VERİ DURUMLARI (%100 CANLI GERÇEK VERİLER)
+      const [fixtures, setFixtures] = useState([]);
+      const [isLoading, setIsLoading] = useState(true);
       const [pollSecondsLeft, setPollSecondsLeft] = useState(60);
 
       // UI
@@ -211,7 +175,6 @@
       const [searchQuery, setSearchQuery] = useState('');
       const [selectedBetSlip, setSelectedBetSlip] = useState([]);
       const [slipStake, setSlipStake] = useState(100);
-      const [mobileSlipOpen, setMobileSlipOpen] = useState(false);
       const [detailModalMatch, setDetailModalMatch] = useState(null);
 
       // AUTH MODAL
@@ -221,58 +184,69 @@
       const [authPasswordInput, setAuthPasswordInput] = useState('');
       const [authMessage, setAuthMessage] = useState(null);
 
-      // CANLI SPOR VERİSİ ÇEKME
+      // GERÇEK CANLI SPOR VERİSİ ÇEKME MOTORU (CORS SAFE & MULTI-PROXY)
       const fetchRealFixtures = async () => {
         setIsLoading(true);
         try {
           const fetchPromises = LEAGUE_ENDPOINTS.map(async (lg) => {
-            try {
-              const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${lg.code}/scoreboard`);
-              if (!res.ok) return [];
-              const data = await res.json();
-              if (!data.events || data.events.length === 0) return [];
+            const targetUrl = `https://site.web.api.espn.com/apis/site/v2/sports/soccer/${lg.code}/scoreboard`;
+            const proxyUrls = [
+              targetUrl,
+              `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+              `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+            ];
 
-              return data.events.map((ev, index) => {
-                const comp = ev.competitions?.[0];
-                const homeTeam = comp?.competitors?.find(c => c.homeAway === 'home');
-                const awayTeam = comp?.competitors?.find(c => c.homeAway === 'away');
-                const isLive = ev.status?.type?.state === 'in';
-                const isFinished = ev.status?.type?.state === 'post';
-
-                let matchTime = "20:00";
-                if (isLive) matchTime = "CANLI";
-                else if (isFinished) matchTime = "MS";
-                else {
-                  try { matchTime = new Date(ev.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+            let data = null;
+            for (const url of proxyUrls) {
+              try {
+                const res = await fetch(url);
+                if (res.ok) {
+                  data = await res.json();
+                  if (data && data.events) break;
                 }
+              } catch (err) {}
+            }
 
-                const sHome = (homeTeam?.score !== undefined && homeTeam?.score !== null && homeTeam?.score !== "") ? parseInt(homeTeam.score) : null;
-                const sAway = (awayTeam?.score !== undefined && awayTeam?.score !== null && awayTeam?.score !== "") ? parseInt(awayTeam.score) : null;
+            if (!data || !data.events || data.events.length === 0) return [];
 
-                return {
-                  id: ev.id || `espn_${lg.id}_${index}`,
-                  code: (100 + ((parseInt(ev.id) || index) % 899)).toString(),
-                  league: lg.id,
-                  leagueName: lg.name,
-                  time: matchTime,
-                  minute: isLive ? (ev.status?.displayClock ? `${ev.status.displayClock}'` : "CANLI") : null,
-                  isLive: isLive,
-                  isFinished: isFinished,
-                  home: homeTeam?.team?.displayName || "Ev Sahibi",
-                  away: awayTeam?.team?.displayName || "Deplasman",
-                  scoreHome: sHome,
-                  scoreAway: sAway,
-                  odds: { ms1: 2.10, msX: 3.25, ms2: 3.00, alt25: 1.85, ust25: 1.75, kgVar: 1.60, kgYok: 2.05 }
-                };
-              });
-            } catch (e) { return []; }
+            return data.events.map((ev, index) => {
+              const comp = ev.competitions?.[0];
+              const homeTeam = comp?.competitors?.find(c => c.homeAway === 'home');
+              const awayTeam = comp?.competitors?.find(c => c.homeAway === 'away');
+              const isLive = ev.status?.type?.state === 'in';
+              const isFinished = ev.status?.type?.state === 'post';
+
+              let matchTime = "20:00";
+              if (isLive) matchTime = "CANLI";
+              else if (isFinished) matchTime = "MS";
+              else {
+                try { matchTime = new Date(ev.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+              }
+
+              const sHome = (homeTeam?.score !== undefined && homeTeam?.score !== null && homeTeam?.score !== "") ? parseInt(homeTeam.score) : null;
+              const sAway = (awayTeam?.score !== undefined && awayTeam?.score !== null && awayTeam?.score !== "") ? parseInt(awayTeam.score) : null;
+
+              return {
+                id: ev.id || `espn_${lg.id}_${index}`,
+                code: (100 + ((parseInt(ev.id) || index) % 899)).toString(),
+                league: lg.id,
+                leagueName: lg.name,
+                time: matchTime,
+                minute: isLive ? (ev.status?.displayClock ? `${ev.status.displayClock}'` : "CANLI") : null,
+                isLive: isLive,
+                isFinished: isFinished,
+                home: homeTeam?.team?.displayName || "Ev Sahibi",
+                away: awayTeam?.team?.displayName || "Deplasman",
+                scoreHome: sHome,
+                scoreAway: sAway,
+                odds: { ms1: 2.10, msX: 3.25, ms2: 3.00, alt25: 1.85, ust25: 1.75, kgVar: 1.60, kgYok: 2.05 }
+              };
+            });
           });
 
           const results = await Promise.all(fetchPromises);
           const realMatches = results.flat();
-          if (realMatches.length > 0) {
-            setFixtures(realMatches);
-          }
+          setFixtures(realMatches);
         } catch (error) {
         } finally {
           setIsLoading(false);
@@ -330,7 +304,6 @@
         updateUserCoins(coins - slipStake);
         updateUserHistory([newBet, ...betsHistory]);
         setSelectedBetSlip([]);
-        setMobileSlipOpen(false);
         playChime('cashout');
         alert("Kupon başarıyla yatırıldı!");
       };
@@ -423,7 +396,7 @@
                 </div>
                 <div className="hidden sm:flex items-center space-x-1.5 bg-[#242424] px-2.5 py-1 rounded-full border border-nesine-border text-[11px]">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  <span className="font-semibold text-gray-300">Canlı Bağlantı Aktif</span>
+                  <span className="font-semibold text-gray-300">Canlı Spor Ağı</span>
                   <span className="text-gray-500">|</span>
                   <span className="text-nesine-yellow font-mono">{pollSecondsLeft}s</span>
                 </div>
@@ -531,7 +504,7 @@
                   <div className="space-y-3">
                     <div className="bg-nesine-card p-4 rounded-lg border border-nesine-border">
                       <h2 className="text-base font-extrabold text-white">Kupondaş - Popüler Kuponlar</h2>
-                      <p className="text-xs text-gray-400">Diğer kullanıcıların oluşturduğu kuponları kopyalayarak oynayabilirsiniz.</p>
+                      <p className="text-xs text-gray-400">Diğer kullanıcıların canlı maçlarla oluşturduğu kuponları kopyalayarak oynayabilirsiniz.</p>
                     </div>
 
                     {kupondasRealPosts.map(post => (
@@ -586,40 +559,51 @@
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {filteredFixtures.map(match => (
-                      <div key={match.id} className="bg-nesine-card rounded-lg border border-nesine-border p-3">
-                        <div className="flex items-center justify-between text-[11px] text-gray-400 mb-2 border-b border-nesine-border pb-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="bg-nesine-subcard text-white px-1.5 py-0.5 rounded font-mono font-bold">{match.code}</span>
-                            <span className="text-gray-300 font-semibold">{match.leagueName}</span>
+                    {isLoading ? (
+                      <div className="bg-nesine-card p-8 rounded text-center text-xs text-gray-400">
+                        📡 Resmî Canlı Spor Ağından Maçlar Çekiliyor...
+                      </div>
+                    ) : filteredFixtures.length === 0 ? (
+                      <div className="bg-nesine-card p-8 rounded text-center text-xs text-gray-400 space-y-2">
+                        <div>🏟️ Seçili ligde şu an oynanan veya yaklaşan canlı maç bulunamadı.</div>
+                        <div className="text-[11px] text-gray-500">Sol menüden "Tüm Karşılaşmalar"ı seçebilirsiniz.</div>
+                      </div>
+                    ) : (
+                      filteredFixtures.map(match => (
+                        <div key={match.id} className="bg-nesine-card rounded-lg border border-nesine-border p-3">
+                          <div className="flex items-center justify-between text-[11px] text-gray-400 mb-2 border-b border-nesine-border pb-1">
+                            <div className="flex items-center space-x-2">
+                              <span className="bg-nesine-subcard text-white px-1.5 py-0.5 rounded font-mono font-bold">{match.code}</span>
+                              <span className="text-gray-300 font-semibold">{match.leagueName}</span>
+                            </div>
+                            <div>{match.isLive ? <span className="text-red-500 font-bold">CANLI {match.minute}</span> : <span>{match.time}</span>}</div>
                           </div>
-                          <div>{match.isLive ? <span className="text-red-500 font-bold">CANLI {match.minute}</span> : <span>{match.time}</span>}</div>
-                        </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex-1 cursor-pointer" onClick={() => setDetailModalMatch(match)}>
-                            <div className="flex items-center space-x-4">
-                              <div className="space-y-1 text-sm font-bold text-white">
-                                <div>{match.home}</div>
-                                <div>{match.away}</div>
-                              </div>
-                              {match.scoreHome !== null && (
-                                <div className="bg-black/80 px-2.5 py-1 rounded border border-nesine-border font-mono text-base font-extrabold text-nesine-yellow">
-                                  {match.scoreHome} - {match.scoreAway}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex-1 cursor-pointer" onClick={() => setDetailModalMatch(match)}>
+                              <div className="flex items-center space-x-4">
+                                <div className="space-y-1 text-sm font-bold text-white">
+                                  <div>{match.home}</div>
+                                  <div>{match.away}</div>
                                 </div>
-                              )}
+                                {match.scoreHome !== null && (
+                                  <div className="bg-black/80 px-2.5 py-1 rounded border border-nesine-border font-mono text-base font-extrabold text-nesine-yellow">
+                                    {match.scoreHome} - {match.scoreAway}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-4 gap-1 text-center font-mono text-xs">
+                              <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '1', match.odds.ms1)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '1') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 1<br/>{match.odds.ms1.toFixed(2)}</button>
+                              <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', 'X', match.odds.msX)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === 'X') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS X<br/>{match.odds.msX.toFixed(2)}</button>
+                              <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '2', match.odds.ms2)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '2') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 2<br/>{match.odds.ms2.toFixed(2)}</button>
+                              <button onClick={() => setDetailModalMatch(match)} className="p-2 rounded border bg-[#242424] text-gray-300 border-nesine-border">Tümü<br/>+14</button>
                             </div>
                           </div>
-
-                          <div className="grid grid-cols-4 gap-1 text-center font-mono text-xs">
-                            <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '1', match.odds.ms1)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '1') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 1<br/>{match.odds.ms1.toFixed(2)}</button>
-                            <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', 'X', match.odds.msX)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === 'X') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS X<br/>{match.odds.msX.toFixed(2)}</button>
-                            <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '2', match.odds.ms2)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '2') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 2<br/>{match.odds.ms2.toFixed(2)}</button>
-                            <button onClick={() => setDetailModalMatch(match)} className="p-2 rounded border bg-[#242424] text-gray-300 border-nesine-border">Tümü<br/>+14</button>
-                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 )}
               </section>
