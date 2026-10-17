@@ -726,4 +726,273 @@
               <div class="flex justify-between"><span style="font-weight: bold; color: #FFF;" class="truncate">${m.home}</span>${m.scoreHome !== null ? `<span class="text-yellow" style="font-weight: bold; font-family: monospace;">${m.scoreHome}</span>` : ''}</div>
               <div class="flex justify-between"><span style="font-weight: bold; color: #FFF;" class="truncate">${m.away}</span>${m.scoreAway !== null ? `<span class="text-yellow" style="font-weight: bold; font-family: monospace;">${m.scoreAway}</span>` : ''}</div>
             </div>
-            <div class="col-1"><butt
+            <div class="col-1"><button class="odd-btn ${isSel1 ? 'selected' : ''}" onclick="toggleOdd('${m.id}', 'Maç Sonucu', '1', ${m.odds.ms1})">${m.odds.ms1.toFixed(2)}</button></div>
+            <div class="col-1"><button class="odd-btn ${isSelX ? 'selected' : ''}" onclick="toggleOdd('${m.id}', 'Maç Sonucu', 'X', ${m.odds.msX})">${m.odds.msX.toFixed(2)}</button></div>
+            <div class="col-1"><button class="odd-btn ${isSel2 ? 'selected' : ''}" onclick="toggleOdd('${m.id}', 'Maç Sonucu', '2', ${m.odds.ms2})">${m.odds.ms2.toFixed(2)}</button></div>
+            <div class="col-1"><button class="odd-btn ${isSelAlt ? 'selected' : ''}" onclick="toggleOdd('${m.id}', '2.5 Gol', 'Alt', ${altVal})">${altVal.toFixed(2)}</button></div>
+            <div class="col-1"><button class="odd-btn ${isSelUst ? 'selected' : ''}" onclick="toggleOdd('${m.id}', '2.5 Gol', 'Üst', ${ustVal})">${ustVal.toFixed(2)}</button></div>
+          </div>`;
+        });
+
+        html += `</div></div>`;
+      }
+
+      area.innerHTML = html;
+    }
+
+    // --- KUPON YÖNETİMİ ---
+    function toggleOdd(matchId, market, oddName, oddVal) {
+      if (!activeUsername) {
+        checkAuthGate();
+        return;
+      }
+      playAudio('click');
+      const m = fixtures.find(f => f.id === matchId);
+      if (!m) return;
+
+      const idx = selectedBetSlip.findIndex(s => s.matchId === matchId);
+      if (idx > -1 && selectedBetSlip[idx].oddName === oddName && selectedBetSlip[idx].market === market) {
+        selectedBetSlip.splice(idx, 1);
+      } else {
+        const item = { matchId: m.id, matchCode: m.code, home: m.home, away: m.away, market, oddName, oddValue: parseFloat(oddVal) };
+        if (idx > -1) selectedBetSlip[idx] = item;
+        else selectedBetSlip.push(item);
+      }
+      renderBetSlip();
+      renderMainContent();
+    }
+
+    function removeSlipItem(mId) {
+      selectedBetSlip = selectedBetSlip.filter(s => s.matchId !== mId);
+      renderBetSlip();
+      renderMainContent();
+    }
+
+    function clearBetSlip() {
+      selectedBetSlip = [];
+      renderBetSlip();
+      renderMainContent();
+    }
+
+    function setStake(amount) {
+      slipStake = amount;
+      document.getElementById('slip-stake-text').innerText = `${slipStake} CC`;
+      const dStake = document.getElementById('drawer-stake-text');
+      if (dStake) dStake.innerText = `${slipStake} CC`;
+      renderBetSlip();
+    }
+
+    function toggleMobileDrawer(open) {
+      const drawer = document.getElementById('mobile-drawer');
+      drawer.style.display = open ? 'flex' : 'none';
+      if (open) renderDrawerItems();
+    }
+
+    function renderDrawerItems() {
+      const container = document.getElementById('drawer-items-container');
+      if (selectedBetSlip.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: #777; padding: 20px 0;">Kuponunuz boş.</div>`;
+        return;
+      }
+      let html = '';
+      selectedBetSlip.forEach(s => {
+        html += `<div class="bg-subcard border-dark" style="padding: 6px 8px; margin-bottom: 6px; border-radius: 2px;">
+          <div class="flex justify-between items-center">
+            <span style="font-weight: bold; color: #FFF;" class="truncate"><strong class="text-yellow" style="font-family: monospace;">[${s.matchCode}]</strong> ${s.home} - ${s.away}</span>
+            <button class="btn" style="background: transparent; color: #DC3545; padding: 0 4px; font-weight: bold;" onclick="removeSlipItem('${s.matchId}'); renderDrawerItems();">✕</button>
+          </div>
+          <div class="flex justify-between items-center" style="margin-top: 4px; font-size: 11px; color: #BBB;">
+            <span>${s.market}: <strong>${s.oddName}</strong></span>
+            <span class="text-yellow" style="font-family: monospace; font-weight: bold;">${s.oddValue.toFixed(2)}</span>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function renderBetSlip() {
+      const container = document.getElementById('slip-items-container');
+      const footer = document.getElementById('slip-footer');
+      const countEl = document.getElementById('slip-match-count');
+      const mobCount = document.getElementById('mobile-slip-count');
+      const mobOdds = document.getElementById('mobile-slip-odds');
+      const mobWin = document.getElementById('mobile-slip-win');
+      const drawerCount = document.getElementById('drawer-slip-count');
+      const drawerOdds = document.getElementById('drawer-total-odds');
+      const drawerWin = document.getElementById('drawer-potential-win');
+
+      countEl.innerText = selectedBetSlip.length;
+      mobCount.innerText = selectedBetSlip.length;
+      if (drawerCount) drawerCount.innerText = selectedBetSlip.length;
+
+      if (selectedBetSlip.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: #666; padding: 25px 0;">Oranlara tıklayarak kupona maç ekleyin.</div>`;
+        footer.style.display = 'none';
+        mobOdds.innerText = '0.00';
+        mobWin.innerText = '0 CC';
+        if (drawerOdds) drawerOdds.innerText = '0.00';
+        if (drawerWin) drawerWin.innerText = '0 CC';
+        return;
+      }
+
+      footer.style.display = 'block';
+      let totalOdds = selectedBetSlip.reduce((acc, s) => acc * s.oddValue, 1).toFixed(2);
+      let potentialWin = (parseFloat(totalOdds) * slipStake).toFixed(2);
+
+      document.getElementById('slip-total-odds').innerText = totalOdds;
+      document.getElementById('slip-potential-win').innerText = `${potentialWin} CC`;
+      mobOdds.innerText = totalOdds;
+      mobWin.innerText = `${potentialWin} CC`;
+
+      if (drawerOdds) drawerOdds.innerText = totalOdds;
+      if (drawerWin) drawerWin.innerText = `${potentialWin} CC`;
+
+      let html = '';
+      selectedBetSlip.forEach(s => {
+        html += `<div class="bg-subcard border-dark" style="padding: 6px 8px; margin-bottom: 6px; border-radius: 2px;">
+          <div class="flex justify-between items-center">
+            <span style="font-weight: bold; color: #FFF;" class="truncate"><strong class="text-yellow" style="font-family: monospace;">[${s.matchCode}]</strong> ${s.home} - ${s.away}</span>
+            <button class="btn" style="background: transparent; color: #DC3545; padding: 0 4px; font-weight: bold;" onclick="removeSlipItem('${s.matchId}')">✕</button>
+          </div>
+          <div class="flex justify-between items-center" style="margin-top: 4px; font-size: 11px; color: #BBB;">
+            <span>${s.market}: <strong>${s.oddName}</strong></span>
+            <span class="text-yellow" style="font-family: monospace; font-weight: bold;">${s.oddValue.toFixed(2)}</span>
+          </div>
+        </div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function placeBet() {
+      if (!activeUsername || !usersDb[activeUsername]) {
+        checkAuthGate();
+        return;
+      }
+
+      if (selectedBetSlip.length === 0) {
+        alert("Lütfen kupona en az 1 karşılaşma ekleyin!");
+        return;
+      }
+
+      const user = usersDb[activeUsername];
+      if (user.coins < slipStake) {
+        alert(`Yetersiz bakiye! Mevcut Bakiyeniz: ${user.coins} CC. Bakiye kutusuna tıklayarak ekleyebilirsiniz.`);
+        return;
+      }
+
+      const totalOdds = selectedBetSlip.reduce((acc, s) => acc * s.oddValue, 1).toFixed(2);
+      const potentialPayout = (parseFloat(totalOdds) * slipStake).toFixed(2);
+
+      const newBet = {
+        id: 'KP_' + Date.now().toString().slice(-6),
+        date: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        stake: slipStake,
+        totalOdds: parseFloat(totalOdds),
+        potentialPayout: parseFloat(potentialPayout),
+        status: 'Devam Ediyor',
+        canCashOut: true,
+        cashOutValue: Math.floor(slipStake * 0.90),
+        selections: [...selectedBetSlip]
+      };
+
+      user.coins -= slipStake;
+      user.history.unshift(newBet);
+      localStorage.setItem('betcore_users_db', JSON.stringify(usersDb));
+
+      selectedBetSlip = [];
+      toggleMobileDrawer(false);
+      renderBetSlip();
+      updateHeaderUser();
+      playAudio('bet');
+
+      alert(`Tebrikler! Kuponunuz yatırıldı.\nKupon No: ${newBet.id}\nOlası Kazanç: ${newBet.potentialPayout} CC\nKuponlarım sekmesinden takip edebilirsiniz.`);
+      setActiveTab('kuponlarim');
+    }
+
+    function cashOut(betId) {
+      const user = usersDb[activeUsername];
+      if (!user) return;
+      const b = user.history.find(x => x.id === betId);
+      if (!b || !b.canCashOut) return;
+
+      const cashVal = b.cashOutValue || Math.floor((b.stake || 50) * 0.9);
+
+      if (confirm(`${cashVal} Core Coins karşılığında kuponu hemen bozdurmak istiyor musunuz?`)) {
+        user.coins += cashVal;
+        b.status = 'Bozduruldu';
+        b.canCashOut = false;
+        localStorage.setItem('betcore_users_db', JSON.stringify(usersDb));
+        playAudio('bet');
+        updateHeaderUser();
+        renderMainContent();
+      }
+    }
+
+    function copyExpertSlip(expertIdx) {
+      if (expertIdx === 0) {
+        selectedBetSlip = [
+          { matchId: 'm4', matchCode: '49101', home: 'Erzurumspor FK', away: 'Kocaelispor', market: 'Maç Sonucu', oddName: '1', oddValue: 2.20 },
+          { matchId: 'm1', matchCode: '48201', home: 'Eyüpspor', away: 'Beşiktaş', market: 'Maç Sonucu', oddName: '2', oddValue: 1.95 }
+        ];
+      } else {
+        selectedBetSlip = [
+          { matchId: 'm7', matchCode: '51201', home: 'Manchester City', away: 'Arsenal', market: '2.5 Gol', oddName: 'Üst', oddValue: 1.55 },
+          { matchId: 'm9', matchCode: '53201', home: 'Real Madrid', away: 'Barcelona', market: 'Maç Sonucu', oddName: '1', oddValue: 2.25 }
+        ];
+      }
+      renderBetSlip();
+      renderMainContent();
+      alert("Kupon başarıyla kuponunuza eklendi!");
+    }
+
+    // --- 60 SANİYELİK OTOMATİK VERİ YENİLEME ---
+    async function refreshFixtures() {
+      pollSeconds = 60;
+      document.getElementById('countdown-text').innerText = '60s';
+      try {
+        const res = await fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/all/scoreboard');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.events) {
+            data.events.forEach(ev => {
+              const evName = (ev.name || '').toLowerCase();
+              // Türkçe karakter toleranslı takım eşleştirme
+              const f = fixtures.find(m => {
+                const normHome = m.home.toLowerCase().replace(/ü/g,'u').replace(/ş/g,'s').replace(/ı/g,'i').replace(/ğ/g,'g');
+                return evName.includes(normHome);
+              });
+              if (f && ev.competitions && ev.competitions[0]) {
+                const comp = ev.competitions[0];
+                const h = comp.competitors?.find(c => c.homeAway === 'home');
+                const a = comp.competitors?.find(c => c.homeAway === 'away');
+                if (h && a && h.score !== undefined) {
+                  f.scoreHome = parseInt(h.score);
+                  f.scoreAway = parseInt(a.score);
+                  f.isLive = ev.status?.type?.state === 'in';
+                  f.minute = ev.status?.displayClock ? `${ev.status.displayClock}'` : 'CANLI';
+                }
+              }
+            });
+            renderMainContent();
+            updateHeaderUser();
+          }
+        }
+      } catch (e) {}
+    }
+
+    setInterval(() => {
+      pollSeconds--;
+      if (pollSeconds <= 0) {
+        refreshFixtures();
+      } else {
+        document.getElementById('countdown-text').innerText = `${pollSeconds}s`;
+      }
+    }, 1000);
+
+    // ================= BAŞLATICI =================
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthGate();
+    });
+  </script>
+</body>
+</html>
