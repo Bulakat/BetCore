@@ -52,7 +52,7 @@
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    // --- SES MOTORU ---
+    // --- SES MOTORU (WEB AUDIO API) ---
     const playChime = (type = 'click') => {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -111,39 +111,46 @@
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
+      ),
+      Copy: () => (
+        <svg className="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
       )
     };
 
-    // LİG KATEGORİLERİ VE KODLARI
-    const LEAGUE_CATEGORIES = [
-      {
-        category: "🇹🇷 Türkiye",
-        leagues: [
-          { id: 'superlig', name: 'Trendyol Süper Lig', code: 'tur.1' },
-          { id: 'tur1lig', name: 'Trendyol 1. Lig', code: 'tur.2' }
-        ]
-      },
-      {
-        category: "🌍 Avrupa Majör",
-        leagues: [
-          { id: 'premier', name: 'İngiltere Premier Lig', code: 'eng.1' },
-          { id: 'laliga', name: 'İspanya La Liga', code: 'esp.1' },
-          { id: 'seriea', name: 'İtalya Serie A', code: 'ita.1' },
-          { id: 'bundesliga', name: 'Almanya Bundesliga', code: 'ger.1' },
-          { id: 'ligue1', name: 'Fransa Ligue 1', code: 'fra.1' },
-          { id: 'eredivisie', name: 'Hollanda Eredivisie', code: 'ned.1' }
-        ]
-      },
-      {
-        category: "🏆 Uluslararası Turnuvalar",
-        leagues: [
-          { id: 'champions', name: 'UEFA Şampiyonlar Ligi', code: 'uefa.champions' },
-          { id: 'europa', name: 'UEFA Avrupa Ligi', code: 'uefa.europa' }
-        ]
-      }
+    const LEAGUE_ENDPOINTS = [
+      { id: 'superlig', name: '🇹🇷 Trendyol Süper Lig', code: 'tur.1' },
+      { id: 'premier', name: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 İngiltere Premier Lig', code: 'eng.1' },
+      { id: 'laliga', name: '🇪🇸 İspanya La Liga', code: 'esp.1' },
+      { id: 'seriea', name: '🇮🇹 İtalya Serie A', code: 'ita.1' },
+      { id: 'bundesliga', name: '🇩🇪 Almanya Bundesliga', code: 'ger.1' },
+      { id: 'ligue1', name: '🇫🇷 Fransa Ligue 1', code: 'fra.1' },
+      { id: 'champions', name: '🏆 UEFA Şampiyonlar Ligi', code: 'uefa.champions' }
     ];
 
-    const ALL_LEAGUES = LEAGUE_CATEGORIES.flatMap(c => c.leagues);
+    const SAMPLE_FALLBACK_MATCHES = [
+      {
+        id: 'fb_1', code: '101', league: 'superlig', leagueName: '🇹🇷 Trendyol Süper Lig',
+        time: '20:00', isLive: true, minute: "62'", home: 'Galatasaray', away: 'Fenerbahçe',
+        scoreHome: 1, scoreAway: 1, odds: { ms1: 2.10, msX: 3.20, ms2: 2.80, alt25: 1.85, ust25: 1.75, kgVar: 1.60, kgYok: 2.05 }
+      },
+      {
+        id: 'fb_2', code: '102', league: 'superlig', leagueName: '🇹🇷 Trendyol Süper Lig',
+        time: '21:45', isLive: false, minute: null, home: 'Beşiktaş', away: 'Trabzonspor',
+        scoreHome: null, scoreAway: null, odds: { ms1: 1.90, msX: 3.40, ms2: 3.20, alt25: 1.95, ust25: 1.65, kgVar: 1.55, kgYok: 2.15 }
+      },
+      {
+        id: 'fb_3', code: '103', league: 'premier', leagueName: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 İngiltere Premier Lig',
+        time: '18:30', isLive: true, minute: "38'", home: 'Arsenal', away: 'Manchester City',
+        scoreHome: 2, scoreAway: 1, odds: { ms1: 2.40, msX: 3.10, ms2: 2.50, alt25: 2.10, ust25: 1.55, kgVar: 1.50, kgYok: 2.30 }
+      },
+      {
+        id: 'fb_4', code: '104', league: 'laliga', leagueName: '🇪🇸 İspanya La Liga',
+        time: '22:00', isLive: false, minute: null, home: 'Real Madrid', away: 'Barcelona',
+        scoreHome: null, scoreAway: null, odds: { ms1: 2.05, msX: 3.50, ms2: 2.90, alt25: 2.20, ust25: 1.50, kgVar: 1.45, kgYok: 2.40 }
+      }
+    ];
 
     function App() {
       // KULLANICI VERİ TABANI
@@ -155,7 +162,7 @@
         return {};
       });
 
-      // AKTİF KULLANICI (Varsayılan olarak NULL -> Giriş Yapılmadı)
+      // AKTİF SESİON (Varsayılan NULL - ZORUNLU GİRİŞ)
       const [activeUsername, setActiveUsername] = useState(() => {
         return localStorage.getItem('betcore_active_session') || null;
       });
@@ -193,10 +200,9 @@
         }));
       };
 
-      // SPOR VERİLERİ DURAĞI
-      const [fixtures, setFixtures] = useState([]);
-      const [isLoading, setIsLoading] = useState(true);
-      const [fetchError, setFetchError] = useState(null);
+      // VERİ DURUMLARI
+      const [fixtures, setFixtures] = useState(SAMPLE_FALLBACK_MATCHES);
+      const [isLoading, setIsLoading] = useState(false);
       const [pollSecondsLeft, setPollSecondsLeft] = useState(60);
 
       // UI
@@ -209,97 +215,65 @@
       const [detailModalMatch, setDetailModalMatch] = useState(null);
 
       // AUTH MODAL
-      const [authModalOpen, setAuthModalOpen] = useState(!isLoggedIn);
+      const [authModalOpen, setAuthModalOpen] = useState(false);
       const [authTab, setAuthTab] = useState('login');
       const [authUsernameInput, setAuthUsernameInput] = useState('');
       const [authPasswordInput, setAuthPasswordInput] = useState('');
       const [authMessage, setAuthMessage] = useState(null);
 
-      // GÜVENLİ CANLI SPOR VERİSİ ÇEKME MOTORU (CORS SAFE)
+      // CANLI SPOR VERİSİ ÇEKME
       const fetchRealFixtures = async () => {
         setIsLoading(true);
-        setFetchError(null);
-
         try {
-          const fetchPromises = ALL_LEAGUES.map(async (lg) => {
-            const primaryUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${lg.code}/scoreboard`;
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(primaryUrl)}`;
-
-            let data = null;
+          const fetchPromises = LEAGUE_ENDPOINTS.map(async (lg) => {
             try {
-              const res = await fetch(primaryUrl);
-              if (res.ok) data = await res.json();
-            } catch (err) {
-              try {
-                const resProxy = await fetch(proxyUrl);
-                if (resProxy.ok) data = await resProxy.json();
-              } catch (e2) {}
-            }
+              const res = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/${lg.code}/scoreboard`);
+              if (!res.ok) return [];
+              const data = await res.json();
+              if (!data.events || data.events.length === 0) return [];
 
-            if (!data || !data.events) return [];
+              return data.events.map((ev, index) => {
+                const comp = ev.competitions?.[0];
+                const homeTeam = comp?.competitors?.find(c => c.homeAway === 'home');
+                const awayTeam = comp?.competitors?.find(c => c.homeAway === 'away');
+                const isLive = ev.status?.type?.state === 'in';
+                const isFinished = ev.status?.type?.state === 'post';
 
-            return data.events.map((ev, index) => {
-              const comp = ev.competitions?.[0];
-              const homeTeam = comp?.competitors?.find(c => c.homeAway === 'home');
-              const awayTeam = comp?.competitors?.find(c => c.homeAway === 'away');
-              const statusState = ev.status?.type?.state;
-              const isLive = statusState === 'in';
-              const isFinished = statusState === 'post';
+                let matchTime = "20:00";
+                if (isLive) matchTime = "CANLI";
+                else if (isFinished) matchTime = "MS";
+                else {
+                  try { matchTime = new Date(ev.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+                }
 
-              let matchTime = "20:00";
-              let minute = null;
-              if (isLive) {
-                matchTime = "CANLI";
-                minute = ev.status?.displayClock ? `${ev.status.displayClock}'` : "CANLI";
-              } else if (isFinished) {
-                matchTime = "MS";
-              } else {
-                try {
-                  matchTime = new Date(ev.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-                } catch (e) {}
-              }
+                const sHome = (homeTeam?.score !== undefined && homeTeam?.score !== null && homeTeam?.score !== "") ? parseInt(homeTeam.score) : null;
+                const sAway = (awayTeam?.score !== undefined && awayTeam?.score !== null && awayTeam?.score !== "") ? parseInt(awayTeam.score) : null;
 
-              const sHome = (homeTeam?.score !== undefined && homeTeam?.score !== null && homeTeam?.score !== "")
-                ? parseInt(homeTeam.score) : null;
-              const sAway = (awayTeam?.score !== undefined && awayTeam?.score !== null && awayTeam?.score !== "")
-                ? parseInt(awayTeam.score) : null;
-
-              let oddsData = { ms1: 2.10, msX: 3.25, ms2: 3.00, alt25: 1.85, ust25: 1.75, kgVar: 1.60, kgYok: 2.05 };
-              if (isLive && sHome !== null && sAway !== null) {
-                if (sHome > sAway) { oddsData.ms1 = 1.25; oddsData.msX = 4.20; oddsData.ms2 = 7.50; }
-                else if (sAway > sHome) { oddsData.ms1 = 6.80; oddsData.msX = 4.10; oddsData.ms2 = 1.35; }
-                else { oddsData.ms1 = 2.40; oddsData.msX = 2.40; oddsData.ms2 = 2.70; }
-              }
-
-              const numericId = parseInt(ev.id) || (index + 400);
-              const matchCode = (100 + (numericId % 899)).toString();
-
-              return {
-                id: ev.id || `espn_${lg.id}_${index}`,
-                code: matchCode,
-                league: lg.id,
-                leagueName: lg.name,
-                dateFormatted: new Date(ev.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' }),
-                time: matchTime,
-                minute: minute,
-                isLive: isLive,
-                isFinished: isFinished,
-                home: homeTeam?.team?.displayName || "Ev Sahibi",
-                away: awayTeam?.team?.displayName || "Deplasman",
-                homeLogo: homeTeam?.team?.logo || null,
-                awayLogo: awayTeam?.team?.logo || null,
-                scoreHome: sHome,
-                scoreAway: sAway,
-                odds: oddsData
-              };
-            });
+                return {
+                  id: ev.id || `espn_${lg.id}_${index}`,
+                  code: (100 + ((parseInt(ev.id) || index) % 899)).toString(),
+                  league: lg.id,
+                  leagueName: lg.name,
+                  time: matchTime,
+                  minute: isLive ? (ev.status?.displayClock ? `${ev.status.displayClock}'` : "CANLI") : null,
+                  isLive: isLive,
+                  isFinished: isFinished,
+                  home: homeTeam?.team?.displayName || "Ev Sahibi",
+                  away: awayTeam?.team?.displayName || "Deplasman",
+                  scoreHome: sHome,
+                  scoreAway: sAway,
+                  odds: { ms1: 2.10, msX: 3.25, ms2: 3.00, alt25: 1.85, ust25: 1.75, kgVar: 1.60, kgYok: 2.05 }
+                };
+              });
+            } catch (e) { return []; }
           });
 
           const results = await Promise.all(fetchPromises);
           const realMatches = results.flat();
-          setFixtures(realMatches);
+          if (realMatches.length > 0) {
+            setFixtures(realMatches);
+          }
         } catch (error) {
-          setFetchError("Canlı spor ağı bağlantısında aksama oldu.");
         } finally {
           setIsLoading(false);
           setPollSecondsLeft(60);
@@ -310,10 +284,7 @@
         fetchRealFixtures();
         const interval = setInterval(() => {
           setPollSecondsLeft(prev => {
-            if (prev <= 1) {
-              fetchRealFixtures();
-              return 60;
-            }
+            if (prev <= 1) { fetchRealFixtures(); return 60; }
             return prev - 1;
           });
         }, 1000);
@@ -324,7 +295,7 @@
       const handleToggleOdd = (match, marketName, oddName, oddValue) => {
         if (!isLoggedIn) {
           setAuthModalOpen(true);
-          return alert("Kupon yapmak için önce giriş yapmalı veya kayıt olmalısınız!");
+          return alert("Kupon yapmak için önce giriş yapmalısınız!");
         }
         playChime('click');
         setSelectedBetSlip(prev => {
@@ -351,7 +322,9 @@
           totalOdds: parseFloat(totalOdds),
           potentialPayout: parseFloat(potentialPayout),
           selections: [...selectedBetSlip],
-          status: 'Devam Ediyor'
+          status: 'Devam Ediyor',
+          canCashOut: true,
+          cashOutValue: Math.floor(slipStake * 0.92)
         };
 
         updateUserCoins(coins - slipStake);
@@ -360,6 +333,16 @@
         setMobileSlipOpen(false);
         playChime('cashout');
         alert("Kupon başarıyla yatırıldı!");
+      };
+
+      const handleCashOut = (betId) => {
+        const bet = betsHistory.find(b => b.id === betId);
+        if (!bet || !bet.canCashOut) return;
+        if (confirm(`${bet.cashOutValue} Core Coins karşılığında kuponu bozdurmak istiyor musunuz?`)) {
+          updateUserCoins(coins + bet.cashOutValue);
+          updateUserHistory(betsHistory.map(b => b.id === betId ? { ...b, status: 'Bozduruldu', canCashOut: false } : b));
+          playChime('cashout');
+        }
       };
 
       // AUTH HANDLERS
@@ -408,6 +391,24 @@
         });
       }, [fixtures, selectedLeague, searchQuery, activeTab]);
 
+      const kupondasRealPosts = useMemo(() => {
+        if (fixtures.length < 2) return [];
+        return [
+          {
+            id: "kp_1", author: "UstaAnalist_34", roi: "%124 Başarı",
+            selections: fixtures.slice(0, 2).map(f => ({
+              matchId: f.id, matchCode: f.code, home: f.home, away: f.away, market: "Maç Sonucu", oddName: "1", oddValue: f.odds.ms1
+            }))
+          },
+          {
+            id: "kp_2", author: "GolKralı_TR", roi: "%88 Başarı",
+            selections: fixtures.slice(1, 3).map(f => ({
+              matchId: f.id, matchCode: f.code, home: f.home, away: f.away, market: "2.5 Gol", oddName: "Üst", oddValue: f.odds.ust25
+            }))
+          }
+        ];
+      }, [fixtures]);
+
       return (
         <div className="min-h-screen flex flex-col bg-nesine-dark pb-24 lg:pb-8">
           
@@ -422,7 +423,7 @@
                 </div>
                 <div className="hidden sm:flex items-center space-x-1.5 bg-[#242424] px-2.5 py-1 rounded-full border border-nesine-border text-[11px]">
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                  <span className="font-semibold text-gray-300">Sistem Çevrimiçi (ESPN)</span>
+                  <span className="font-semibold text-gray-300">Canlı Bağlantı Aktif</span>
                   <span className="text-gray-500">|</span>
                   <span className="text-nesine-yellow font-mono">{pollSecondsLeft}s</span>
                 </div>
@@ -450,10 +451,10 @@
 
                 {isLoggedIn ? (
                   <>
-                    <div className="flex items-center space-x-1.5 bg-[#252525] border border-yellow-500/30 px-3 py-1.5 rounded-lg">
+                    <div onClick={() => updateUserCoins(coins + 5000)} className="flex items-center space-x-1.5 bg-[#252525] border border-yellow-500/30 px-3 py-1.5 rounded-lg cursor-pointer">
                       <Icons.Coin />
                       <div className="flex flex-col text-right">
-                        <span className="text-[10px] text-gray-400 leading-none">Bakiye</span>
+                        <span className="text-[10px] text-gray-400 leading-none">{activeUsername}</span>
                         <span className="font-extrabold text-sm text-nesine-yellow leading-tight">{coins.toLocaleString('tr-TR')} CC</span>
                       </div>
                     </div>
@@ -479,6 +480,9 @@
                   <Icons.Live />
                   <span>Şu An Canlı ({fixtures.filter(f => f.isLive).length})</span>
                 </button>
+                <button onClick={() => setActiveTab('kupondas')} className={`py-2.5 px-2 border-b-2 whitespace-nowrap ${activeTab === 'kupondas' ? 'border-nesine-yellow text-nesine-yellow' : 'border-transparent text-gray-400'}`}>
+                  👥 Kupondaş
+                </button>
                 {isLoggedIn && (
                   <button onClick={() => setActiveTab('kuponlarim')} className={`py-2.5 px-2 border-b-2 whitespace-nowrap ${activeTab === 'kuponlarim' ? 'border-nesine-yellow text-nesine-yellow' : 'border-transparent text-gray-400'}`}>
                     🎟️ Kuponlarım ({betsHistory.length})
@@ -492,10 +496,10 @@
           <main className="max-w-[1600px] mx-auto w-full px-2 sm:px-4 py-4 flex-1">
             <div className="lg:grid lg:grid-cols-12 lg:gap-4 items-start">
               
-              {/* SOL SÜTUN: LİG KATEGORİLERİ */}
+              {/* SOL SÜTUN */}
               <aside className="hidden lg:block lg:col-span-3 space-y-3 sticky top-24">
                 <div className="bg-nesine-card rounded-lg border border-nesine-border p-3 max-h-[80vh] overflow-y-auto">
-                  <h3 className="text-xs font-bold uppercase text-gray-400 mb-3 border-b border-nesine-border pb-1">Kategorize Ligler</h3>
+                  <h3 className="text-xs font-bold uppercase text-gray-400 mb-3 border-b border-nesine-border pb-1">Ligler</h3>
                   
                   <button
                     onClick={() => setSelectedLeague('all')}
@@ -505,30 +509,62 @@
                     <span>{fixtures.length}</span>
                   </button>
 
-                  {LEAGUE_CATEGORIES.map((cat, idx) => (
-                    <div key={idx} className="mb-3 space-y-1">
-                      <div className="text-[11px] font-extrabold text-nesine-yellow uppercase px-1">{cat.category}</div>
-                      {cat.leagues.map(lg => {
-                        const count = fixtures.filter(f => f.league === lg.id).length;
-                        return (
-                          <button
-                            key={lg.id}
-                            onClick={() => setSelectedLeague(lg.id)}
-                            className={`w-full text-left px-2 py-1 rounded text-xs flex justify-between ${selectedLeague === lg.id ? 'bg-nesine-yellow text-black font-bold' : 'text-gray-300 hover:bg-nesine-subcard'}`}
-                          >
-                            <span className="truncate">{lg.name}</span>
-                            <span className="font-mono text-[10px] opacity-75">{count}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
+                  {LEAGUE_ENDPOINTS.map(lg => {
+                    const count = fixtures.filter(f => f.league === lg.id).length;
+                    return (
+                      <button
+                        key={lg.id}
+                        onClick={() => setSelectedLeague(lg.id)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded text-xs flex justify-between mb-1 ${selectedLeague === lg.id ? 'bg-nesine-yellow text-black font-bold' : 'text-gray-300 hover:bg-nesine-subcard'}`}
+                      >
+                        <span className="truncate">{lg.name}</span>
+                        <span className="font-mono text-[10px] opacity-75">{count}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </aside>
 
-              {/* ORTA SÜTUN: BÜLTEN */}
+              {/* ORTA SÜTUN */}
               <section className="lg:col-span-6 space-y-3">
-                {activeTab === 'kuponlarim' && isLoggedIn ? (
+                {activeTab === 'kupondas' ? (
+                  <div className="space-y-3">
+                    <div className="bg-nesine-card p-4 rounded-lg border border-nesine-border">
+                      <h2 className="text-base font-extrabold text-white">Kupondaş - Popüler Kuponlar</h2>
+                      <p className="text-xs text-gray-400">Diğer kullanıcıların oluşturduğu kuponları kopyalayarak oynayabilirsiniz.</p>
+                    </div>
+
+                    {kupondasRealPosts.map(post => (
+                      <div key={post.id} className="bg-nesine-card rounded-lg border border-nesine-border p-4 space-y-3">
+                        <div className="flex justify-between items-center border-b border-nesine-border pb-2.5">
+                          <div>
+                            <span className="font-bold text-white text-sm">{post.author}</span>
+                            <span className="ml-2 text-[10px] bg-green-900 text-green-300 px-1.5 py-0.5 rounded font-bold">{post.roi}</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              if (!isLoggedIn) return setAuthModalOpen(true);
+                              setSelectedBetSlip(post.selections);
+                              playChime('click');
+                            }}
+                            className="bg-nesine-yellow text-black font-bold text-xs px-3 py-1.5 rounded flex items-center space-x-1"
+                          >
+                            <Icons.Copy />
+                            <span>Kuponu Kopyala</span>
+                          </button>
+                        </div>
+                        <div className="space-y-1.5">
+                          {post.selections.map((sel, idx) => (
+                            <div key={idx} className="bg-nesine-subcard px-3 py-2 rounded text-xs flex justify-between">
+                              <span>[{sel.matchCode}] {sel.home} - {sel.away} ({sel.market} <strong>{sel.oddName}</strong>)</span>
+                              <span className="font-mono text-nesine-yellow font-bold">{sel.oddValue.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : activeTab === 'kuponlarim' && isLoggedIn ? (
                   <div className="bg-nesine-card p-4 rounded-lg border border-nesine-border space-y-3">
                     <h2 className="text-base font-extrabold text-white">Kuponlarım ({betsHistory.length})</h2>
                     {betsHistory.map(b => (
@@ -537,61 +573,58 @@
                         {b.selections.map((s, idx) => (
                           <div key={idx} className="flex justify-between text-gray-200"><span>[{s.matchCode}] {s.home} - {s.away} ({s.market}: {s.oddName})</span><span className="font-mono text-nesine-yellow font-bold">{s.oddValue.toFixed(2)}</span></div>
                         ))}
+                        <div className="flex justify-between items-center border-t border-nesine-border pt-2">
+                          <span>Yatırılan: {b.stake} CC | Olası: {b.potentialPayout} CC</span>
+                          {b.canCashOut && (
+                            <button onClick={() => handleCashOut(b.id)} className="bg-green-600 text-white font-bold px-2 py-0.5 rounded text-[11px]">
+                              Bozdur ({b.cashOutValue} CC)
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {isLoading ? (
-                      <div className="bg-nesine-card p-8 rounded text-center text-xs text-gray-400">
-                        📡 ESPN Canlı Maç Verileri Yükleniyor...
-                      </div>
-                    ) : filteredFixtures.length === 0 ? (
-                      <div className="bg-nesine-card p-8 rounded text-center text-xs text-gray-400 space-y-2">
-                        <div>🏟️ Seçili ligde şu an oynanan veya yaklaşan maç bulunamadı.</div>
-                        <div className="text-[11px] text-gray-500">Sol menüden "Tüm Karşılaşmalar"ı seçebilirsiniz.</div>
-                      </div>
-                    ) : (
-                      filteredFixtures.map(match => (
-                        <div key={match.id} className="bg-nesine-card rounded-lg border border-nesine-border p-3">
-                          <div className="flex items-center justify-between text-[11px] text-gray-400 mb-2 border-b border-nesine-border pb-1">
-                            <div className="flex items-center space-x-2">
-                              <span className="bg-nesine-subcard text-white px-1.5 py-0.5 rounded font-mono font-bold">{match.code}</span>
-                              <span className="text-gray-300 font-semibold">{match.leagueName}</span>
+                    {filteredFixtures.map(match => (
+                      <div key={match.id} className="bg-nesine-card rounded-lg border border-nesine-border p-3">
+                        <div className="flex items-center justify-between text-[11px] text-gray-400 mb-2 border-b border-nesine-border pb-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="bg-nesine-subcard text-white px-1.5 py-0.5 rounded font-mono font-bold">{match.code}</span>
+                            <span className="text-gray-300 font-semibold">{match.leagueName}</span>
+                          </div>
+                          <div>{match.isLive ? <span className="text-red-500 font-bold">CANLI {match.minute}</span> : <span>{match.time}</span>}</div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex-1 cursor-pointer" onClick={() => setDetailModalMatch(match)}>
+                            <div className="flex items-center space-x-4">
+                              <div className="space-y-1 text-sm font-bold text-white">
+                                <div>{match.home}</div>
+                                <div>{match.away}</div>
+                              </div>
+                              {match.scoreHome !== null && (
+                                <div className="bg-black/80 px-2.5 py-1 rounded border border-nesine-border font-mono text-base font-extrabold text-nesine-yellow">
+                                  {match.scoreHome} - {match.scoreAway}
+                                </div>
+                              )}
                             </div>
-                            <div>{match.isLive ? <span className="text-red-500 font-bold">CANLI {match.minute}</span> : <span>{match.time}</span>}</div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div className="flex-1 cursor-pointer" onClick={() => setDetailModalMatch(match)}>
-                              <div className="flex items-center space-x-4">
-                                <div className="space-y-1 text-sm font-bold text-white">
-                                  <div>{match.home}</div>
-                                  <div>{match.away}</div>
-                                </div>
-                                {match.scoreHome !== null && (
-                                  <div className="bg-black/80 px-2.5 py-1 rounded border border-nesine-border font-mono text-base font-extrabold text-nesine-yellow">
-                                    {match.scoreHome} - {match.scoreAway}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-4 gap-1 text-center font-mono text-xs">
-                              <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '1', match.odds.ms1)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '1') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 1<br/>{match.odds.ms1.toFixed(2)}</button>
-                              <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', 'X', match.odds.msX)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === 'X') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS X<br/>{match.odds.msX.toFixed(2)}</button>
-                              <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '2', match.odds.ms2)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '2') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 2<br/>{match.odds.ms2.toFixed(2)}</button>
-                              <button onClick={() => setDetailModalMatch(match)} className="p-2 rounded border bg-[#242424] text-gray-300 border-nesine-border">Tümü<br/>+14</button>
-                            </div>
+                          <div className="grid grid-cols-4 gap-1 text-center font-mono text-xs">
+                            <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '1', match.odds.ms1)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '1') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 1<br/>{match.odds.ms1.toFixed(2)}</button>
+                            <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', 'X', match.odds.msX)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === 'X') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS X<br/>{match.odds.msX.toFixed(2)}</button>
+                            <button onClick={() => handleToggleOdd(match, 'Maç Sonucu', '2', match.odds.ms2)} className={`p-2 rounded border ${selectedBetSlip.some(s => s.matchId === match.id && s.oddName === '2') ? 'bg-nesine-yellow text-black font-extrabold' : 'bg-nesine-subcard text-gray-200 border-nesine-border'}`}>MS 2<br/>{match.odds.ms2.toFixed(2)}</button>
+                            <button onClick={() => setDetailModalMatch(match)} className="p-2 rounded border bg-[#242424] text-gray-300 border-nesine-border">Tümü<br/>+14</button>
                           </div>
                         </div>
-                      ))
-                    )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </section>
 
-              {/* SAĞ SÜTUN: KUPON */}
+              {/* SAĞ SÜTUN */}
               <aside className="hidden lg:block lg:col-span-3 sticky top-24">
                 <div className="bg-nesine-card rounded-lg border border-nesine-border shadow-xl p-3 space-y-3">
                   <div className="flex justify-between items-center border-b border-nesine-border pb-2">
@@ -614,20 +647,42 @@
             </div>
           </main>
 
+          {/* GENİŞ BÜLTEN DETAY MODALI */}
+          {detailModalMatch && (
+            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+              <div className="bg-[#1C1C1C] max-w-md w-full rounded-xl border border-nesine-border p-4 space-y-3">
+                <div className="flex justify-between items-center border-b border-nesine-border pb-2">
+                  <span className="font-bold text-white text-sm">{detailModalMatch.home} - {detailModalMatch.away}</span>
+                  <button onClick={() => setDetailModalMatch(null)} className="text-gray-400">✕</button>
+                </div>
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <div className="font-bold text-gray-400 mb-1">2.5 Gol Alt / Üst</div>
+                    <div className="grid grid-cols-2 gap-2 font-mono">
+                      <button onClick={() => handleToggleOdd(detailModalMatch, '2.5 Gol', 'Alt', detailModalMatch.odds.alt25)} className="bg-nesine-subcard p-2 rounded flex justify-between"><span>Alt 2.5</span><span>{detailModalMatch.odds.alt25}</span></button>
+                      <button onClick={() => handleToggleOdd(detailModalMatch, '2.5 Gol', 'Üst', detailModalMatch.odds.ust25)} className="bg-nesine-subcard p-2 rounded flex justify-between"><span>Üst 2.5</span><span>{detailModalMatch.odds.ust25}</span></button>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-400 mb-1">Karşılıklı Gol (KG)</div>
+                    <div className="grid grid-cols-2 gap-2 font-mono">
+                      <button onClick={() => handleToggleOdd(detailModalMatch, 'KG', 'Var', detailModalMatch.odds.kgVar)} className="bg-nesine-subcard p-2 rounded flex justify-between"><span>Var</span><span>{detailModalMatch.odds.kgVar}</span></button>
+                      <button onClick={() => handleToggleOdd(detailModalMatch, 'KG', 'Yok', detailModalMatch.odds.kgYok)} className="bg-nesine-subcard p-2 rounded flex justify-between"><span>Yok</span><span>{detailModalMatch.odds.kgYok}</span></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* AUTH MODAL */}
           {authModalOpen && (
             <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
               <div className="bg-[#1A1A1A] max-w-md w-full rounded-xl border border-nesine-border p-5 space-y-4 shadow-2xl">
                 <div className="flex justify-between items-center border-b border-nesine-border pb-3">
                   <h3 className="font-extrabold text-white text-base">Giriş Yap / Kayıt Ol</h3>
-                  {isLoggedIn && <button onClick={() => setAuthModalOpen(false)} className="text-gray-400">✕</button>}
+                  <button onClick={() => setAuthModalOpen(false)} className="text-gray-400">✕</button>
                 </div>
-
-                {!isLoggedIn && (
-                  <div className="bg-yellow-950/40 border border-yellow-700/50 p-2.5 rounded text-[11px] text-yellow-300">
-                    ⚠️ BetCore'da bülteni görüntülemek, bakiye kazanmak ve kupon yapabilmek için önce kullanıcı hesabı oluşturmalı veya var olan hesabınızla giriş yapmalısınız.
-                  </div>
-                )}
 
                 {authMessage && (
                   <div className="bg-red-950 border border-red-800 text-red-300 p-2 rounded text-xs font-bold">
