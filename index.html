@@ -6,7 +6,7 @@
   <title>BetCore - İddaa Bülteni & Canlı Bahis</title>
 
   <style>
-    /* NESİNE TEMA & SIFIR BAĞIMLILIKLI TAM CSS MOTORU */
+    /* ================= SIFIR BAĞIMLILIKLI NESİNE CSS MOTORU ================= */
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0; padding: 0;
@@ -20,8 +20,8 @@
     ::-webkit-scrollbar-thumb { background: #383838; border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: #4F4F4F; }
 
-    /* Layout */
-    .container-custom { max-width: 1400px; margin: 0 auto; padding: 0 10px; }
+    /* Yerleşim */
+    .container { max-width: 1400px; margin: 0 auto; padding: 0 10px; }
     .flex { display: flex; }
     .flex-col { flex-direction: column; }
     .items-center { align-items: center; }
@@ -32,19 +32,19 @@
     .space-x-3 > * + * { margin-left: 12px; }
     .space-y-1 > * + * { margin-top: 4px; }
     .space-y-2 > * + * { margin-top: 8px; }
-    .space-y-3 > * + * { margin-top: 12px; }
     .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* Nesine Colors */
+    /* Renkler */
     .bg-dark { background-color: #121212; }
     .bg-header { background-color: #1A1A1A; }
     .bg-card { background-color: #1C1C1C; }
     .bg-subcard { background-color: #242424; }
-    .bg-row-hover:hover { background-color: #202020; }
-    .bg-yellow { background-color: #F5B400; color: #000; }
+    .bg-row:hover { background-color: #202020; }
     .text-yellow { color: #F5B400; }
+    .text-green { color: #28A745; }
+    .text-red { color: #DC3545; }
     .border-dark { border: 1px solid #2C2C2C; }
-    .border-light { border: 1px solid #383838; }
+    .border-sub { border: 1px solid #333333; }
 
     /* Butonlar */
     .btn {
@@ -56,6 +56,7 @@
     .btn-yellow:hover { background-color: #DCA200; }
     .btn-dark { background-color: #282828; color: #DDD; border: 1px solid #3A3A3A; }
     .btn-dark:hover { background-color: #333333; color: #FFF; }
+    .btn-red { background-color: #DC3545; color: #FFF; }
 
     /* Oran Kutusu */
     .odd-btn {
@@ -72,7 +73,7 @@
       border-color: #F5B400 !important;
     }
 
-    /* Grid */
+    /* 12 Kolonluk Nesine Grid */
     .grid-12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
     .col-1 { grid-column: span 1; }
     .col-2 { grid-column: span 2; }
@@ -89,34 +90,46 @@
       .mobile-only { display: none !important; }
     }
 
-    /* Giriş Zorunlu Ekranı */
+    /* Zorunlu Giriş Modal Kapısı */
     #auth-gate {
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(10, 10, 10, 0.96);
+      position: fixed; inset: 0; z-index: 99999;
+      background: rgba(10, 10, 10, 0.98);
       display: flex; align-items: center; justify-content: center;
     }
     .auth-box {
-      background: #1C1C1C; border: 1px solid #333;
+      background: #1C1C1C; border: 1px solid #383838;
       width: 100%; max-width: 380px; padding: 24px;
-      border-radius: 4px; box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+      border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+    }
+
+    /* Mobil Kupon Çekmecesi */
+    #mobile-drawer {
+      position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,0.85); display: none;
+      flex-direction: column; justify-content: flex-end;
+    }
+    .drawer-content {
+      background: #1A1A1A; border-top: 2px solid #F5B400;
+      border-radius: 8px 8px 0 0; padding: 15px; max-height: 80vh;
+      display: flex; flex-direction: column;
     }
   </style>
 </head>
 <body>
 
-  <!-- ================= ZORUNLU GİRİŞ & KAYIT GİRİŞ KAPISI ================= -->
-  <div id="auth-gate" style="display: none;">
+  <!-- ================= 1. KESİNTİSİZ ZORUNLU GİRİŞ KAPISI ================= -->
+  <div id="auth-gate">
     <div class="auth-box">
       <div class="flex items-center justify-between" style="border-bottom: 1px solid #333; padding-bottom: 12px; margin-bottom: 15px;">
         <div class="flex items-center space-x-2">
           <span style="background: #F5B400; color: #000; font-weight: 900; padding: 2px 6px; font-size: 16px; border-radius: 2px;">BET</span>
           <span style="font-size: 16px; font-weight: 800; color: #FFF;">CORE</span>
         </div>
-        <span style="color: #F5B400; font-size: 11px; font-weight: bold;">ZORUNLU GİRİŞ</span>
+        <span style="color: #F5B400; font-size: 11px; font-weight: bold;">GİRİŞ ZORUNLUDUR</span>
       </div>
 
       <p style="font-size: 11px; color: #888; margin-bottom: 15px;">
-        Bülteni incelemek ve bahis yapabilmek için lütfen giriş yapın veya ücretsiz hesap oluşturun.
+        Bülteni görüntülemek ve bahis oynamak için hesabınıza giriş yapın veya yeni üye olun.
       </p>
 
       <div id="auth-msg" style="display: none; padding: 8px; font-size: 11px; margin-bottom: 12px; border-radius: 2px;"></div>
@@ -126,7 +139,7 @@
         <button id="tab-register-btn" class="btn" style="flex: 1; border-bottom: 2px solid transparent; color: #777; background: transparent;" onclick="switchAuthTab('register')">KAYIT OL (5.000 CC)</button>
       </div>
 
-      <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+      <form onsubmit="handleAuthSubmit(event)">
         <div style="margin-bottom: 10px;">
           <label style="display: block; color: #999; margin-bottom: 4px; font-size: 11px;">Kullanıcı Adı</label>
           <input type="text" id="auth-username" required style="width: 100%; background: #101010; border: 1px solid #333; color: #FFF; padding: 8px; font-size: 12px; outline: none;" placeholder="Kullanıcı adınızı girin">
@@ -137,7 +150,7 @@
         </div>
 
         <div id="register-perks" style="display: none; margin-bottom: 15px; background: #222; border-left: 3px solid #F5B400; padding: 8px; font-size: 10px; color: #BBB;">
-          🎁 <strong>5.000 Core Coins</strong> Kayıt Bonusu + her gün <strong>200 CC</strong> Günlük Giriş Bonusu!
+          🎁 Kayıt olduğunuzda <strong>5.000 Core Coins</strong> + ilk girişinizde <strong>200 CC Günlük Bonus</strong> anında yüklenir!
         </div>
 
         <button type="submit" id="auth-submit-btn" class="btn btn-yellow" style="width: 100%; padding: 10px; font-size: 12px; text-transform: uppercase;">GİRİŞ YAP</button>
@@ -146,15 +159,15 @@
   </div>
 
   <!-- GÜNLÜK GİRİŞ BONUSU BİLDİRİMİ -->
-  <div id="daily-bonus-toast" style="display: none; background: #28A745; color: #000; text-align: center; padding: 8px; font-size: 11px; font-weight: bold;">
-    🎁 GÜNLÜK GİRİŞ BONUSU: 200 Core Coins hesabınıza eklendi!
+  <div id="daily-bonus-toast" style="display: none; background: #28A745; color: #000; text-align: center; padding: 8px; font-size: 11px; font-weight: bold; position: sticky; top: 0; z-index: 9999;">
+    🎁 GÜNLÜK GİRİŞ BONUSU: 200 Core Coins hesabınıza aktarıldı!
   </div>
 
-  <!-- ================= HEADER ================= -->
+  <!-- ================= 2. NESİNE HEADER ================= -->
   <header class="bg-header border-dark" style="position: sticky; top: 0; z-index: 40;">
-    <div class="container-custom flex items-center justify-between" style="height: 48px;">
+    <div class="container flex items-center justify-between" style="height: 48px;">
       
-      <!-- Sol Logo & Canlı Ticker -->
+      <!-- Logo & Canlı Ticker -->
       <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-1 cursor-pointer" onclick="setActiveTab('bulten'); setLeague('all');">
           <span style="background: #F5B400; color: #000; font-weight: 900; padding: 2px 6px; font-size: 16px; border-radius: 2px;">BET</span>
@@ -168,22 +181,22 @@
       </div>
 
       <!-- Orta Arama -->
-      <div class="desktop-only" style="flex: 1; max-width: 320px; margin: 0 15px;">
+      <div class="desktop-only" style="flex: 1; max-width: 300px; margin: 0 15px;">
         <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="Takım veya maç kodu ara..." style="width: 100%; background: #101010; border: 1px solid #333; color: #FFF; padding: 6px 10px; font-size: 11px; outline: none;">
       </div>
 
-      <!-- Sağ Bakiye, Ses & Çıkış -->
+      <!-- Bakiye, Ses & Çıkış -->
       <div class="flex items-center space-x-2">
         <button class="btn btn-dark" style="padding: 4px 8px;" onclick="toggleSound()" id="sound-btn">🔔</button>
 
-        <div class="bg-card border-dark flex flex-col justify-center" style="padding: 4px 10px; text-align: right; cursor: pointer;" onclick="addFreeCoins()">
+        <div class="bg-card border-dark flex flex-col justify-center" style="padding: 4px 10px; text-align: right; cursor: pointer;" onclick="addFreeCoins()" title="Tıkla ve 1.000 CC Ekle">
           <span style="font-size: 9px; color: #888; text-transform: uppercase;">Bakiye</span>
-          <span id="header-coins" class="text-yellow" style="font-weight: bold; font-family: monospace; font-size: 12px;">5.000 CC</span>
+          <span id="header-coins" class="text-yellow" style="font-weight: bold; font-family: monospace; font-size: 12px;">0 CC</span>
         </div>
 
         <div class="flex items-center space-x-1 bg-subcard border-dark" style="padding: 4px 8px; border-radius: 2px;">
           <span style="color: #AAA;">👤</span>
-          <span id="header-username" style="font-weight: bold; max-width: 90px;" class="truncate">Kullanıcı</span>
+          <span id="header-username" style="font-weight: bold; max-width: 90px;" class="truncate">Giriş Yapılmadı</span>
           <button class="btn" style="background: transparent; color: #DC3545; padding: 0 4px; font-size: 11px;" onclick="logout()" title="Çıkış Yap">✕</button>
         </div>
       </div>
@@ -192,38 +205,34 @@
 
     <!-- Sekmeler -->
     <div style="background: #202020; border-top: 1px solid #282828;">
-      <div class="container-custom flex space-x-1" style="overflow-x: auto;">
+      <div class="container flex space-x-1" style="overflow-x: auto;">
         <button id="nav-bulten" class="btn" style="padding: 8px 14px; border-bottom: 2px solid #F5B400; color: #F5B400; background: #161616;" onclick="setActiveTab('bulten')">FUTBOL BÜLTENİ</button>
-        <button id="nav-canli" class="btn" style="padding: 8px 14px; border-bottom: 2px solid transparent; color: #999; background: transparent;" onclick="setActiveTab('canli')">CANLI MAÇLAR</button>
+        <button id="nav-canli" class="btn" style="padding: 8px 14px; border-bottom: 2px solid transparent; color: #DC3545; background: transparent;" onclick="setActiveTab('canli')">🔴 CANLI MAÇLAR (<span id="live-count-badge">0</span>)</button>
         <button id="nav-kuponlarim" class="btn" style="padding: 8px 14px; border-bottom: 2px solid transparent; color: #999; background: transparent;" onclick="setActiveTab('kuponlarim')">KUPONLARIM (<span id="coupon-count-badge">0</span>)</button>
         <button id="nav-kupondas" class="btn" style="padding: 8px 14px; border-bottom: 2px solid transparent; color: #999; background: transparent;" onclick="setActiveTab('kupondas')">KUPONDAŞ</button>
       </div>
     </div>
   </header>
 
-  <!-- ================= ANA GÖVDE (3 KOLON NESİNE DÜZENİ) ================= -->
-  <main class="container-custom" style="padding-top: 12px; padding-bottom: 70px;">
+  <!-- ================= 3. ANA GÖVDE ================= -->
+  <main class="container" style="padding-top: 12px; padding-bottom: 75px;">
     <div class="grid-12" style="align-items: start;">
       
-      <!-- SOL SÜTUN: LİG MENÜSÜ -->
+      <!-- SOL LİG MENÜSÜ (Desktop) -->
       <aside class="col-2 desktop-only" style="position: sticky; top: 100px;">
         <div class="bg-card border-dark" style="border-radius: 2px; overflow: hidden;">
           <div class="bg-subcard flex items-center justify-between" style="padding: 8px 10px; border-bottom: 1px solid #333; font-weight: bold; font-size: 11px;">
             <span>LİG SEÇİMİ</span>
             <button class="btn btn-dark" style="padding: 2px 6px; font-size: 10px;" onclick="setLeague('all')">Tümü</button>
           </div>
-          <div id="league-menu-container" style="max-height: calc(100vh - 160px); overflow-y: auto;">
-            <!-- Dinamik Lig Listesi -->
-          </div>
+          <div id="league-menu-container" style="max-height: calc(100vh - 160px); overflow-y: auto;"></div>
         </div>
       </aside>
 
-      <!-- ORTA SÜTUN: BÜLTEN & KUPONLAR -->
-      <section class="col-7 mobile-full" id="main-content-area">
-        <!-- Bülten veya Kuponlarım içeriği buraya dinamik render edilir -->
-      </section>
+      <!-- ORTA BÜLTEN VE İÇERİK ALANI -->
+      <section class="col-7 mobile-full" id="main-content-area"></section>
 
-      <!-- SAĞ SÜTUN: KUPONUM (Desktop) -->
+      <!-- SAĞ KUPON ALANI (Desktop) -->
       <aside class="col-3 desktop-only" style="position: sticky; top: 100px;">
         <div class="bg-card border-dark" style="border-radius: 2px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
           <div class="bg-subcard flex items-center justify-between" style="padding: 8px 10px; border-bottom: 1px solid #333; font-weight: bold; font-size: 11px;">
@@ -256,7 +265,7 @@
               </div>
               <div class="flex justify-between" style="font-size: 12px; font-weight: bold; color: #FFF;">
                 <span>Maksimum Kazanç:</span>
-                <span id="slip-potential-win" style="color: #28A745; font-family: monospace;">0 CC</span>
+                <span id="slip-potential-win" class="text-green" style="font-family: monospace;">0 CC</span>
               </div>
             </div>
 
@@ -268,20 +277,48 @@
     </div>
   </main>
 
-  <!-- ================= MOBİL SABİT KUPON BAR ================= -->
+  <!-- ================= 4. MOBİL SABİT KUPON BARI ================= -->
   <div class="mobile-only" style="position: fixed; bottom: 0; left: 0; right: 0; background: #1C1C1C; border-top: 1px solid #333; padding: 8px 12px; z-index: 50;">
     <div class="flex items-center justify-between">
-      <div>
-        <div style="font-weight: bold; font-size: 12px; color: #FFF;">Kuponum (<span id="mobile-slip-count">0</span> Maç)</div>
-        <div style="font-size: 10px; color: #888;">Oran: <span id="mobile-slip-odds">0.00</span> | Kazanç: <span id="mobile-slip-win" style="color: #28A745;">0 CC</span></div>
+      <div onclick="toggleMobileDrawer(true)" style="cursor: pointer;">
+        <div style="font-weight: bold; font-size: 12px; color: #FFF;">Kuponum (<span id="mobile-slip-count">0</span> Maç) 🔼</div>
+        <div style="font-size: 10px; color: #888;">Oran: <span id="mobile-slip-odds">0.00</span> | Kazanç: <span id="mobile-slip-win" class="text-green">0 CC</span></div>
       </div>
-      <button class="btn btn-yellow" style="font-size: 11px; padding: 6px 12px;" onclick="placeBet()">Hemen Oyna</button>
+      <button class="btn btn-yellow" style="font-size: 11px; padding: 6px 14px;" onclick="placeBet()">Kuponu Oyna</button>
     </div>
   </div>
 
-  <!-- ================= JAVASCRIPT MOTORU ================= -->
+  <!-- MOBİL KUPON DETAY ÇEKMECESİ -->
+  <div id="mobile-drawer">
+    <div class="drawer-content">
+      <div class="flex justify-between items-center" style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 8px;">
+        <span style="font-weight: bold; color: #FFF; font-size: 13px;">Kupon Detayı (<span id="drawer-slip-count">0</span> Maç)</span>
+        <button class="btn btn-dark" onclick="toggleMobileDrawer(false)">✕ Kapat</button>
+      </div>
+      <div id="drawer-items-container" style="overflow-y: auto; flex: 1; margin-bottom: 10px; max-height: 250px;"></div>
+      <div style="margin-bottom: 8px;">
+        <div class="flex justify-between text-yellow" style="font-size: 11px; margin-bottom: 4px;">
+          <span>Misli: <strong id="drawer-stake-text" style="color: #FFF;">50 CC</strong></span>
+          <span>Oran: <strong id="drawer-total-odds">0.00</strong></span>
+        </div>
+        <div class="flex space-x-1">
+          <button class="btn btn-dark" style="flex: 1; padding: 4px 0;" onclick="setStake(20)">20</button>
+          <button class="btn btn-dark" style="flex: 1; padding: 4px 0;" onclick="setStake(50)">50</button>
+          <button class="btn btn-dark" style="flex: 1; padding: 4px 0;" onclick="setStake(100)">100</button>
+          <button class="btn btn-dark" style="flex: 1; padding: 4px 0;" onclick="setStake(250)">250</button>
+        </div>
+      </div>
+      <div class="flex justify-between items-center" style="margin-bottom: 8px; font-weight: bold; font-size: 13px;">
+        <span style="color: #AAA;">Olası Kazanç:</span>
+        <span id="drawer-potential-win" class="text-green" style="font-family: monospace;">0 CC</span>
+      </div>
+      <button class="btn btn-yellow" style="width: 100%; padding: 10px; font-weight: 900;" onclick="placeBet()">KUPONU OYNA</button>
+    </div>
+  </div>
+
+  <!-- ================= 5. HATASIZ JAVASCRIPT MOTORU ================= -->
   <script>
-    // --- SES SENTEZLEYİCİ (Web Audio) ---
+    // --- SES YÖNETİMİ ---
     let soundEnabled = true;
     function playAudio(type) {
       if (!soundEnabled) return;
@@ -309,7 +346,7 @@
       document.getElementById('sound-btn').innerText = soundEnabled ? '🔔' : '🔕';
     }
 
-    // --- LİG HARİTASI ---
+    // --- LİGLER LİSTESİ ---
     const LEAGUES = [
       { id: 'tur.1', name: 'Trendyol Süper Lig', flag: '🇹🇷', category: 'TÜRKİYE' },
       { id: 'tur.2', name: 'Trendyol 1. Lig', flag: '🇹🇷', category: 'TÜRKİYE' },
@@ -320,14 +357,14 @@
       { id: 'uefa.champions', name: 'Şampiyonlar Ligi', flag: '🇪🇺', category: 'DİĞER LİGLER' }
     ];
 
-    // --- GERÇEK MAÇ LİSTESİ (Süper Lig: Eyüpspor / 1. Lig: Erzurumspor FK) ---
+    // --- GERÇEK MAÇ LİSTESİ (STANDART ORAN YAPISI: ms1, msX, ms2, alt, ust) ---
     let fixtures = [
-      // Trendyol Süper Lig
+      // Trendyol Süper Lig (Eyüpspor burada)
       { id: 'm1', code: '48201', leagueId: 'tur.1', leagueName: 'Trendyol Süper Lig', flag: '🇹🇷', time: 'CANLI', minute: "68'", isLive: true, home: 'Eyüpspor', away: 'Beşiktaş', scoreHome: 1, scoreAway: 1, odds: { ms1: 3.10, msX: 3.25, ms2: 1.95, alt: 1.80, ust: 1.78 } },
       { id: 'm2', code: '48202', leagueId: 'tur.1', leagueName: 'Trendyol Süper Lig', flag: '🇹🇷', time: '20:00', minute: null, isLive: false, home: 'Galatasaray', away: 'Fenerbahçe', scoreHome: null, scoreAway: null, odds: { ms1: 2.15, msX: 3.35, ms2: 2.80, alt: 1.95, ust: 1.65 } },
       { id: 'm3', code: '48203', leagueId: 'tur.1', leagueName: 'Trendyol Süper Lig', flag: '🇹🇷', time: '17:00', minute: null, isLive: false, home: 'Trabzonspor', away: 'Başakşehir', scoreHome: null, scoreAway: null, odds: { ms1: 2.00, msX: 3.20, ms2: 3.20, alt: 1.75, ust: 1.85 } },
 
-      // Trendyol 1. Lig
+      // Trendyol 1. Lig (Erzurumspor FK burada)
       { id: 'm4', code: '49101', leagueId: 'tur.2', leagueName: 'Trendyol 1. Lig', flag: '🇹🇷', time: 'CANLI', minute: "54'", isLive: true, home: 'Erzurumspor FK', away: 'Kocaelispor', scoreHome: 1, scoreAway: 0, odds: { ms1: 2.20, msX: 2.90, ms2: 3.10, alt: 1.60, ust: 2.05 } },
       { id: 'm5', code: '49102', leagueId: 'tur.2', leagueName: 'Trendyol 1. Lig', flag: '🇹🇷', time: '19:00', minute: null, isLive: false, home: 'Gençlerbirliği', away: 'Bandırmaspor', scoreHome: null, scoreAway: null, odds: { ms1: 2.35, msX: 3.00, ms2: 2.70, alt: 1.68, ust: 1.90 } },
       { id: 'm6', code: '49103', leagueId: 'tur.2', leagueName: 'Trendyol 1. Lig', flag: '🇹🇷', time: '16:00', minute: null, isLive: false, home: 'Fatih Karagümrük', away: 'Ankaragücü', scoreHome: null, scoreAway: null, odds: { ms1: 2.10, msX: 3.10, ms2: 3.05, alt: 1.72, ust: 1.82 } },
@@ -337,34 +374,52 @@
       { id: 'm8', code: '51202', leagueId: 'eng.1', leagueName: 'Premier League', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', time: '22:00', minute: null, isLive: false, home: 'Liverpool', away: 'Chelsea', scoreHome: null, scoreAway: null, odds: { ms1: 1.85, msX: 3.60, ms2: 3.80, alt: 2.20, ust: 1.50 } },
 
       // İspanya La Liga
-      { id: 'm9', code: '53201', leagueId: 'esp.1', leagueName: 'La Liga', flag: '🇪🇸', time: '21:45', minute: null, isLive: false, home: 'Real Madrid', away: 'Barcelona', scoreHome: null, scoreAway: null, odds: { ms1: 2.25, msX: 3.40, ms2: 2.75, alt: 2.30, ust: 1.48 } }
+      { id: 'm9', code: '53201', leagueId: 'esp.1', leagueName: 'La Liga', flag: '🇪🇸', time: '21:45', minute: null, isLive: false, home: 'Real Madrid', away: 'Barcelona', scoreHome: null, scoreAway: null, odds: { ms1: 2.25, msX: 3.40, ms2: 2.75, alt: 2.30, ust: 1.48 } },
+
+      // İtalya Serie A
+      { id: 'm10', code: '54201', leagueId: 'ita.1', leagueName: 'Serie A', flag: '🇮🇹', time: '19:00', minute: null, isLive: false, home: 'Inter', away: 'Milan', scoreHome: null, scoreAway: null, odds: { ms1: 1.95, msX: 3.30, ms2: 3.60, alt: 1.85, ust: 1.80 } },
+
+      // Almanya Bundesliga
+      { id: 'm11', code: '55201', leagueId: 'ger.1', leagueName: 'Bundesliga', flag: '🇩🇪', time: '16:30', minute: null, isLive: false, home: 'Bayern Münih', away: 'Borussia Dortmund', scoreHome: null, scoreAway: null, odds: { ms1: 1.65, msX: 4.10, ms2: 4.50, alt: 2.60, ust: 1.42 } },
+
+      // Şampiyonlar Ligi
+      { id: 'm12', code: '56201', leagueId: 'uefa.champions', leagueName: 'Şampiyonlar Ligi', flag: '🇪🇺', time: '22:00', minute: null, isLive: false, home: 'Paris Saint-Germain', away: 'Real Madrid', scoreHome: null, scoreAway: null, odds: { ms1: 2.40, msX: 3.30, ms2: 2.70, alt: 2.15, ust: 1.60 } }
     ];
 
     // --- UYGULAMA DURUMU (STATE) ---
+    let usersDb = {};
+    try {
+      usersDb = JSON.parse(localStorage.getItem('betcore_users_db') || '{}');
+    } catch (e) {
+      usersDb = {};
+    }
+
     let activeUsername = localStorage.getItem('betcore_active_session') || '';
-    let usersDb = JSON.parse(localStorage.getItem('betcore_users_db') || '{}');
     let activeTab = 'bulten';
     let selectedLeague = 'all';
     let searchQuery = '';
     let selectedBetSlip = [];
     let slipStake = 50;
     let pollSeconds = 60;
+    let authTab = 'login';
 
-    // --- GİRİŞ KONTROLÜ (ZORUNLU AUTH GATE) ---
+    // --- KESİN ZORUNLU GİRİŞ VE GATE KONTROLÜ ---
     function checkAuthGate() {
       const gate = document.getElementById('auth-gate');
       if (!activeUsername || !usersDb[activeUsername]) {
         gate.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
       } else {
         gate.style.display = 'none';
+        document.body.style.overflow = 'auto';
         checkDailyBonus();
         updateHeaderUser();
         renderLeagueMenu();
         renderMainContent();
+        renderBetSlip();
       }
     }
 
-    let authTab = 'login';
     function switchAuthTab(tab) {
       authTab = tab;
       const loginBtn = document.getElementById('tab-login-btn');
@@ -410,10 +465,10 @@
           msg.innerText = 'Bu kullanıcı adı zaten alınmış!';
           return;
         }
-        // 5.000 CC KAYIT BONUSU
+        // KAYIT BONUSU: 5.000 CC + GÜNLÜK GİRİŞ: 200 CC = TOPLAM 5.200 CC
         usersDb[uname] = {
           password: pass,
-          coins: 5000,
+          coins: 5200,
           history: [],
           lastDailyBonusDate: todayStr
         };
@@ -427,14 +482,14 @@
     }
 
     function logout() {
-      if (confirm("Oturumu kapatmak istiyor musunuz? Giriş ekranına yönlendirileceksiniz.")) {
+      if (confirm("Oturumu kapatmak istiyor musunuz? Bültene erişmek için tekrar giriş yapmanız gerekecektir.")) {
         activeUsername = '';
         localStorage.removeItem('betcore_active_session');
         checkAuthGate();
       }
     }
 
-    // --- GÜNLÜK 200 CC GİRİŞ BONUSU ---
+    // --- GÜNLÜK 200 CC BONUS KONTROLÜ ---
     function checkDailyBonus() {
       const todayStr = new Date().toISOString().slice(0, 10);
       const user = usersDb[activeUsername];
@@ -445,13 +500,13 @@
         playAudio('bet');
         const toast = document.getElementById('daily-bonus-toast');
         toast.style.display = 'block';
-        setTimeout(() => toast.style.display = 'none', 5000);
+        setTimeout(() => toast.style.display = 'none', 4000);
       }
     }
 
     function addFreeCoins() {
-      if (!activeUsername) return;
-      if (confirm("Bakiyenize 1.000 Core Coins test bakiyesi eklensin mi?")) {
+      if (!activeUsername || !usersDb[activeUsername]) return;
+      if (confirm("Bakiyenize 1.000 Core Coins eklensin mi?")) {
         usersDb[activeUsername].coins += 1000;
         localStorage.setItem('betcore_users_db', JSON.stringify(usersDb));
         updateHeaderUser();
@@ -464,6 +519,8 @@
         document.getElementById('header-coins').innerText = `${user.coins.toLocaleString('tr-TR')} CC`;
         document.getElementById('header-username').innerText = activeUsername;
         document.getElementById('coupon-count-badge').innerText = user.history.length;
+        const liveCount = fixtures.filter(f => f.isLive).length;
+        document.getElementById('live-count-badge').innerText = liveCount;
       }
     }
 
@@ -501,7 +558,7 @@
     }
 
     function handleSearch(val) {
-      searchQuery = val.toLowerCase();
+      searchQuery = (val || '').toLocaleLowerCase('tr-TR');
       renderMainContent();
     }
 
@@ -510,9 +567,13 @@
       ['bulten', 'canli', 'kuponlarim', 'kupondas'].forEach(t => {
         const btn = document.getElementById(`nav-${t}`);
         if (t === tab) {
-          btn.style.borderBottom = '2px solid #F5B400'; btn.style.color = '#F5B400'; btn.style.background = '#161616';
+          btn.style.borderBottom = t === 'canli' ? '2px solid #DC3545' : '2px solid #F5B400';
+          btn.style.color = t === 'canli' ? '#DC3545' : '#F5B400';
+          btn.style.background = '#161616';
         } else {
-          btn.style.borderBottom = '2px solid transparent'; btn.style.color = '#999'; btn.style.background = 'transparent';
+          btn.style.borderBottom = '2px solid transparent';
+          btn.style.color = t === 'canli' ? '#DC3545' : '#999';
+          btn.style.background = 'transparent';
         }
       });
       renderMainContent();
@@ -522,7 +583,7 @@
     function renderMainContent() {
       const area = document.getElementById('main-content-area');
 
-      // 1. KUPONLARIM
+      // 1. KUPONLARIM SEKMESİ
       if (activeTab === 'kuponlarim') {
         const history = (usersDb[activeUsername] && usersDb[activeUsername].history) || [];
         if (history.length === 0) {
@@ -554,12 +615,14 @@
             </div>`;
           });
 
+          const cashVal = b.cashOutValue || Math.floor((b.stake || 50) * 0.9);
+
           html += `</div>
             <div class="flex justify-between items-center" style="border-top: 1px solid #303030; padding-top: 8px; margin-top: 8px; font-size: 11px;">
               <div>Yatırılan: <strong style="color: #FFF; font-family: monospace;">${b.stake} CC</strong> | Oran: <strong class="text-yellow" style="font-family: monospace;">${b.totalOdds}</strong></div>
               <div class="flex items-center space-x-2">
-                <span style="color: #28A745; font-weight: bold; font-family: monospace;">Kazanç: ${b.potentialPayout} CC</span>
-                ${b.canCashOut ? `<button class="btn" style="background: #28A745; color: #000; font-weight: bold; font-size: 10px; padding: 3px 8px;" onclick="cashOut('${b.id}')">Bozdur (${b.cashOutValue} CC)</button>` : ''}
+                <span class="text-green" style="font-weight: bold; font-family: monospace;">Kazanç: ${b.potentialPayout} CC</span>
+                ${b.canCashOut ? `<button class="btn" style="background: #28A745; color: #000; font-weight: bold; font-size: 10px; padding: 3px 8px;" onclick="cashOut('${b.id}')">Bozdur (${cashVal} CC)</button>` : ''}
               </div>
             </div>
           </div>`;
@@ -570,12 +633,12 @@
         return;
       }
 
-      // 2. KUPONDAŞ
+      // 2. KUPONDAŞ SEKMESİ
       if (activeTab === 'kupondas') {
         area.innerHTML = `<div class="bg-card border-dark" style="padding: 12px;">
           <div style="border-bottom: 1px solid #333; padding-bottom: 8px; margin-bottom: 10px;">
             <div style="font-weight: bold; font-size: 13px; color: #FFF;">KUPONDAŞ - UZMAN KUPONLARI</div>
-            <div style="font-size: 11px; color: #888;">Hazır kuponları tek tıkla kopyalayabilirsiniz.</div>
+            <div style="font-size: 11px; color: #888;">Uzmanların gerçek maçlardan hazırladığı kuponları tek tıkla kopyalayabilirsiniz.</div>
           </div>
           <div class="space-y-2">
             <div class="bg-subcard border-dark" style="padding: 10px;">
@@ -588,25 +651,37 @@
                 <div class="flex justify-between bg-dark" style="padding: 4px 8px;"><span>[48201] Eyüpspor - Beşiktaş (MS 2)</span><span class="text-yellow font-mono">1.95</span></div>
               </div>
             </div>
+
+            <div class="bg-subcard border-dark" style="padding: 10px;">
+              <div class="flex justify-between items-center" style="margin-bottom: 8px;">
+                <span style="font-weight: bold; color: #FFF;">PremierAnalist <span style="background: #0A3A15; color: #4ADE80; font-size: 10px; padding: 2px 6px;">%95 Kâr</span></span>
+                <button class="btn btn-yellow" style="font-size: 10px; padding: 4px 8px;" onclick="copyExpertSlip(1)">Kuponu Kopyala</button>
+              </div>
+              <div class="space-y-1 text-xs">
+                <div class="flex justify-between bg-dark" style="padding: 4px 8px;"><span>[51201] Manchester City - Arsenal (2.5 Üst)</span><span class="text-yellow font-mono">1.55</span></div>
+                <div class="flex justify-between bg-dark" style="padding: 4px 8px;"><span>[53201] Real Madrid - Barcelona (MS 1)</span><span class="text-yellow font-mono">2.25</span></div>
+              </div>
+            </div>
           </div>
         </div>`;
         return;
       }
 
-      // 3. FUTBOL BÜLTENİ TABLOSU (LİGLERE GÖRE AYRILMIŞ)
+      // 3. İDDAA BÜLTENİ TABLOSU
       const filtered = fixtures.filter(m => {
         const matchLeague = selectedLeague === 'all' || m.leagueId === selectedLeague;
-        const matchSearch = m.home.toLowerCase().includes(searchQuery) || m.away.toLowerCase().includes(searchQuery) || m.code.includes(searchQuery);
+        const hName = (m.home || '').toLocaleLowerCase('tr-TR');
+        const aName = (m.away || '').toLocaleLowerCase('tr-TR');
+        const matchSearch = hName.includes(searchQuery) || aName.includes(searchQuery) || (m.code || '').includes(searchQuery);
         const matchTab = activeTab === 'canli' ? m.isLive : true;
         return matchLeague && matchSearch && matchTab;
       });
 
       if (filtered.length === 0) {
-        area.innerHTML = `<div class="bg-card border-dark" style="padding: 40px; text-align: center; color: #777;">Seçili ligde maç bulunamadı.</div>`;
+        area.innerHTML = `<div class="bg-card border-dark" style="padding: 40px; text-align: center; color: #777;">Seçili kritere uygun karşılaşma bulunamadı.</div>`;
         return;
       }
 
-      // Gruplama
       const groups = {};
       filtered.forEach(m => {
         if (!groups[m.leagueId]) groups[m.leagueId] = { name: m.leagueName, flag: m.flag, matches: [] };
@@ -639,11 +714,16 @@
           const isSelAlt = selectedBetSlip.some(s => s.matchId === m.id && s.oddName === 'Alt');
           const isSelUst = selectedBetSlip.some(s => s.matchId === m.id && s.oddName === 'Üst');
 
-          html += `<div class="grid-12 bg-row-hover items-center" style="padding: 6px 8px; border-bottom: 1px solid #202020;">
+          const altVal = m.odds.alt || 1.80;
+          const ustVal = m.odds.ust || 1.76;
+
+          html += `<div class="grid-12 bg-row items-center" style="padding: 6px 8px; border-bottom: 1px solid #202020;">
             <div class="col-1" style="font-family: monospace; color: #777; font-size: 11px;">${m.code}</div>
             <div class="col-1" style="text-align: center; font-family: monospace; font-size: 10px;">
               ${m.isLive ? `<span style="color: #DC3545; font-weight: bold;">${m.minute}</span>` : `<span style="color: #BBB;">${m.time}</span>`}
             </div>
             <div class="col-5" style="padding-left: 6px; padding-right: 4px;">
               <div class="flex justify-between"><span style="font-weight: bold; color: #FFF;" class="truncate">${m.home}</span>${m.scoreHome !== null ? `<span class="text-yellow" style="font-weight: bold; font-family: monospace;">${m.scoreHome}</span>` : ''}</div>
-              <div class="flex
+              <div class="flex justify-between"><span style="font-weight: bold; color: #FFF;" class="truncate">${m.away}</span>${m.scoreAway !== null ? `<span class="text-yellow" style="font-weight: bold; font-family: monospace;">${m.scoreAway}</span>` : ''}</div>
+            </div>
+            <div class="col-1"><butt
